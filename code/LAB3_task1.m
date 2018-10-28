@@ -20,9 +20,32 @@ test_image  = tiny_images(test_image_paths);
 
 %% Step 2: Classify each test image by training and using the appropriate classifier
 fprintf('Using Nearest Neighbor classifier to predict test set categories\n');
-k=1; % the K nearest neighbor
+k=5; % the K nearest neighbor
 predicted_labels = nearest_neighbor(train_image, train_labels, test_image,k);  
 
 %% print out the result
 create_results_webpage( train_image_paths,test_image_paths,train_labels,test_labels,categories,abbr_categories,predicted_labels);
-   
+
+function predicted = nearest_neighbor(train_imgs, train_labels, test_imgs, k)
+    D = pdist2(test_imgs,train_imgs);
+    D_sorted = sort(D,2);
+    k_closest = strings(size(train_imgs,1),k);
+    predicted = strings(size(train_imgs,1),1);
+    
+    for i=1:size(test_imgs)
+        for j=1:k
+            k_closest(i,j)=train_labels(find(D(i,:)==D_sorted(i,j)));
+        end
+        predicted(i) = get_mode_str(k_closest(i,:));
+    end
+end
+
+function mode_val = get_mode_str(x)
+    y = unique(x);
+    n = zeros(length(y), 1);
+    for iy = 1:length(y)
+      n(iy) = length(find(strcmp(y{iy}, x)));
+    end
+    [~, itemp] = max(n);
+    mode_val = y(itemp);
+end
